@@ -31,10 +31,11 @@ describe('constants', () => {
   });
 
   describe('data arrays', () => {
-    it('has 10 species', () => {
-      expect(SPECIES).toHaveLength(10);
+    it('has 11 species', () => {
+      expect(SPECIES).toHaveLength(11);
       expect(SPECIES).toContain('Human');
       expect(SPECIES).toContain('Void Elf');
+      expect(SPECIES).toContain('Neptunian');
     });
 
     it('has 32 interests', () => {
