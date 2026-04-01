@@ -29,7 +29,10 @@ export default function App() {
     return 'discover';
   });
   const [chatProfileId, setChatProfileId] = useState<string | null>(null);
-  const [showApiKeyScreen, setShowApiKeyScreen] = useState(!apiKey && !envApiKey && !hasOnboarded);
+  // In production, the Cloudflare Worker proxy handles API calls — no key needed.
+  // Only show the API key screen in dev when there's no .env key set.
+  const isDev = import.meta.env.DEV;
+  const [showApiKeyScreen, setShowApiKeyScreen] = useState(isDev && !apiKey && !envApiKey && !hasOnboarded);
 
   // All hooks MUST be above any early returns (Rules of Hooks)
   const handleSwipe = useCallback((profileId: string) => {
