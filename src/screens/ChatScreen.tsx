@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Avatar } from '../components/Avatar';
 import { SPRING, generateId } from '../constants';
@@ -23,7 +23,7 @@ export function ChatScreen({ profileId, conversation, apiKey, onSendMessage, onB
   const { sendMessage, isLoading } = useAIChat(apiKey);
 
   const profile = profiles.find(p => p.id === profileId);
-  const messages = conversation?.messages || [];
+  const messages = useMemo(() => conversation?.messages || [], [conversation?.messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,41 +33,43 @@ export function ChatScreen({ profileId, conversation, apiKey, onSendMessage, onB
     if (conversation?.unread) onMarkRead(profileId);
   }, [profileId, conversation?.unread, onMarkRead]);
 
-  if (!profile) return null;
-
-  async function handleSend() {
+  const handleSend = useCallback(async () => {
+    if (!profile) return;
     const text = input.trim();
     if (!text || isLoading) return;
     setInput('');
 
+    const now = Date.now();
     const userMsg: Message = {
       id: generateId(),
       profileId,
       content: text,
       sender: 'user',
-      timestamp: Date.now(),
+      timestamp: now,
     };
 
     // Optimistically add user message
-    const aiContent = await sendMessage(profile!, messages, text);
+    const aiContent = await sendMessage(profile, messages, text);
 
     const aiMsg: Message = {
       id: generateId(),
       profileId,
-      content: aiContent || getOfflineResponse(profile!),
+      content: aiContent || getOfflineResponse(profile),
       sender: 'match',
-      timestamp: Date.now() + 1,
+      timestamp: now + 1,
     };
 
     onSendMessage(profileId, userMsg, aiMsg);
-  }
+  }, [input, isLoading, profile, messages, profileId, sendMessage, onSendMessage]);
 
-  function handleKeyDown(e: React.KeyboardEvent) {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
-  }
+  }, [handleSend]);
+
+  if (!profile) return null;
 
   const avatarSeed = profile.photos[0].split('seed=')[1]?.split('&')[0] || profile.id;
 

@@ -5,6 +5,15 @@ import { CosmicButton } from './CosmicButton';
 import type { Profile, UserProfile } from '../types';
 import { ChatCircleDots, ArrowRight } from '@phosphor-icons/react';
 
+const PARTICLES = Array.from({ length: 20 }, () => ({
+  x: (Math.random() - 0.5) * 400,
+  y: (Math.random() - 0.5) * 400,
+  duration: 1.5 + Math.random(),
+  delay: Math.random() * 0.5,
+  width: 4 + Math.random() * 6,
+  height: 4 + Math.random() * 6,
+}));
+
 interface MatchOverlayProps {
   profile: Profile;
   userProfile: UserProfile;
@@ -13,6 +22,7 @@ interface MatchOverlayProps {
 }
 
 export function MatchOverlay({ profile, userProfile, onMessage, onKeepSwiping }: MatchOverlayProps) {
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -28,7 +38,7 @@ export function MatchOverlay({ profile, userProfile, onMessage, onKeepSwiping }:
       }}
     >
       {/* Particles */}
-      {Array.from({ length: 20 }).map((_, i) => (
+      {PARTICLES.map((p, i) => (
         <motion.div
           key={i}
           initial={{
@@ -40,14 +50,14 @@ export function MatchOverlay({ profile, userProfile, onMessage, onKeepSwiping }:
           animate={{
             opacity: [0, 1, 0],
             scale: [0, 1, 0.5],
-            x: (Math.random() - 0.5) * 400,
-            y: (Math.random() - 0.5) * 400,
+            x: p.x,
+            y: p.y,
           }}
-          transition={{ duration: 1.5 + Math.random(), delay: Math.random() * 0.5 }}
+          transition={{ duration: p.duration, delay: p.delay }}
           style={{
             position: 'absolute',
-            width: 4 + Math.random() * 6,
-            height: 4 + Math.random() * 6,
+            width: p.width,
+            height: p.height,
             borderRadius: '50%',
             background: i % 3 === 0 ? 'var(--nebula-400)' : i % 3 === 1 ? 'var(--cosmic-pink)' : 'var(--stardust)',
             pointerEvents: 'none',
