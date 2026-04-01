@@ -12,6 +12,7 @@ export const MATCH_PROBABILITY = 0.6;
 export const SPECIES = [
   'Human', 'Martian', 'Andromedan', 'Nebulari', 'Void Elf',
   'Plutonian', 'Celestari', 'Zyphorian', 'Lunari', 'Saturnite',
+  'Neptunian',
 ];
 
 export const INTERESTS_POOL = [

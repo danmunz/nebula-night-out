@@ -2,13 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { profiles } from '../data/profiles';
 
 describe('profiles data', () => {
-  it('contains exactly 100 profiles', () => {
-    expect(profiles).toHaveLength(100);
+  it('contains exactly 120 profiles', () => {
+    expect(profiles).toHaveLength(120);
   });
 
   it('all profiles have unique IDs', () => {
     const ids = profiles.map((p) => p.id);
-    expect(new Set(ids).size).toBe(100);
+    expect(new Set(ids).size).toBe(120);
   });
 
   it('all profiles have required fields', () => {
@@ -32,6 +32,7 @@ describe('profiles data', () => {
     const knownSpecies = [
       'Human', 'Martian', 'Andromedan', 'Nebulari', 'Void Elf',
       'Plutonian', 'Celestari', 'Zyphorian', 'Lunari', 'Saturnite',
+      'Neptunian',
     ];
     profiles.forEach((p) => {
       expect(knownSpecies).toContain(p.species);
@@ -43,8 +44,8 @@ describe('profiles data', () => {
     profiles.forEach((p) => {
       speciesCounts.set(p.species, (speciesCounts.get(p.species) || 0) + 1);
     });
-    // All 10 species should be represented
-    expect(speciesCounts.size).toBe(10);
+    // All 11 species should be represented
+    expect(speciesCounts.size).toBe(11);
   });
 
   it('all photos contain avatar URLs', () => {
