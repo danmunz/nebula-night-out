@@ -3,9 +3,11 @@ import { motion } from 'motion/react';
 import { GlassCard } from '../components/GlassCard';
 import { CosmicButton } from '../components/CosmicButton';
 import { Avatar } from '../components/Avatar';
+import { ImageCropper } from '../components/ImageCropper';
+import { useImageUpload } from '../hooks/useImageUpload';
 import { SPECIES, INTERESTS_POOL, SPRING } from '../constants';
 import type { UserProfile } from '../types';
-import { PencilSimple, Key, Trash } from '@phosphor-icons/react';
+import { PencilSimple, Key, Trash, UploadSimple, Camera } from '@phosphor-icons/react';
 import { clearAllData } from '../hooks/useLocalStorage';
 
 interface ProfileScreenProps {
@@ -22,11 +24,14 @@ export function ProfileScreen({ userProfile, apiKey, onUpdateProfile, onUpdateAp
   const [bio, setBio] = useState(userProfile.bio);
   const [species, setSpecies] = useState(userProfile.species);
   const [interests, setInterests] = useState(userProfile.interests);
+  const [editAvatar, setEditAvatar] = useState(userProfile.avatar);
   const [showApiKey, setShowApiKey] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState(apiKey || '');
 
+  const { imageData, triggerFileSelect, triggerCamera, clearImage } = useImageUpload();
+
   function save() {
-    onUpdateProfile({ ...userProfile, name, bio, species, interests });
+    onUpdateProfile({ ...userProfile, name, bio, species, interests, avatar: editAvatar });
     setEditing(false);
   }
 
@@ -35,20 +40,33 @@ export function ProfileScreen({ userProfile, apiKey, onUpdateProfile, onUpdateAp
     setShowApiKey(false);
   }
 
-  const avatarSeed = userProfile.avatar.split('seed=')[1]?.split('&')[0] || 'user';
+  const avatarSeed = userProfile.avatar.startsWith('data:')
+    ? userProfile.avatar
+    : (userProfile.avatar.split('seed=')[1]?.split('&')[0] || 'user');
 
   return (
     <div style={{ padding: '1rem 1rem 5rem', overflow: 'auto', flex: 1 }}>
+      {imageData && (
+        <ImageCropper
+          imageSrc={imageData}
+          onConfirm={(cropped) => {
+            setEditAvatar(cropped);
+            clearImage();
+          }}
+          onCancel={() => {
+            clearImage();
+          }}
+        />
+      )}
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 700, marginBottom: '1rem', paddingLeft: '0.25rem' }}>
         Your Profile
       </h2>
 
       <GlassCard>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <Avatar seed={avatarSeed} size={100} />
-
           {!editing ? (
             <>
+              <Avatar seed={avatarSeed} size={100} />
               <div style={{ textAlign: 'center' }}>
                 <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 700 }}>
                   {userProfile.name}
@@ -79,6 +97,40 @@ export function ProfileScreen({ userProfile, apiKey, onUpdateProfile, onUpdateAp
             </>
           ) : (
             <>
+              {/* Avatar editing */}
+              <Avatar
+                seed={editAvatar.startsWith('data:') ? editAvatar : (editAvatar.split('seed=')[1]?.split('&')[0] || 'user')}
+                size={100}
+              />
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => triggerFileSelect()}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.35rem',
+                    padding: '0.4rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 500,
+                    background: 'rgba(124, 58, 237, 0.15)', border: '1px solid rgba(124, 58, 237, 0.3)',
+                    color: 'var(--nebula-400)', cursor: 'pointer',
+                  }}
+                >
+                  <UploadSimple size={14} weight="bold" />
+                  Upload
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => triggerCamera()}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.35rem',
+                    padding: '0.4rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 500,
+                    background: 'rgba(236, 72, 153, 0.15)', border: '1px solid rgba(236, 72, 153, 0.3)',
+                    color: 'var(--cosmic-pink)', cursor: 'pointer',
+                  }}
+                >
+                  <Camera size={14} weight="bold" />
+                  Camera
+                </motion.button>
+              </div>
+
               <input
                 value={name}
                 onChange={e => setName(e.target.value)}
@@ -139,7 +191,7 @@ export function ProfileScreen({ userProfile, apiKey, onUpdateProfile, onUpdateAp
 
               <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                 <CosmicButton fullWidth onClick={save}>Save</CosmicButton>
-                <CosmicButton variant="ghost" onClick={() => setEditing(false)}>Cancel</CosmicButton>
+                <CosmicButton variant="ghost" onClick={() => { setEditing(false); setEditAvatar(userProfile.avatar); }}>Cancel</CosmicButton>
               </div>
             </>
           )}
