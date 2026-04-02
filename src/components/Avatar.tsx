@@ -9,6 +9,9 @@ interface AvatarProps {
 }
 
 export function Avatar({ seed, size = 80, style, glowColor = 'rgba(168,85,247,0.4)' }: AvatarProps) {
+  const isCustomPhoto = seed.startsWith('data:') || seed.startsWith('blob:') || seed.startsWith('http');
+  const imgSrc = isCustomPhoto ? seed : getAvatarUrl(seed);
+
   return (
     <div style={{
       width: size,
@@ -21,7 +24,7 @@ export function Avatar({ seed, size = 80, style, glowColor = 'rgba(168,85,247,0.
       ...style,
     }}>
       <img
-        src={getAvatarUrl(seed)}
+        src={imgSrc}
         alt=""
         style={{
           width: '100%',

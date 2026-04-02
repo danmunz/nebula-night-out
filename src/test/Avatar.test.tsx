@@ -17,4 +17,19 @@ describe('Avatar', () => {
     expect(wrapper.style.width).toBe('64px');
     expect(wrapper.style.height).toBe('64px');
   });
+
+  it('renders a data URL directly without dicebear', () => {
+    const dataUrl = 'data:image/jpeg;base64,/9j/4AAQ...';
+    const { container } = render(<Avatar seed={dataUrl} size={80} />);
+    const img = container.querySelector('img');
+    expect(img?.src).toBe(dataUrl);
+    expect(img?.src).not.toContain('dicebear.com');
+  });
+
+  it('renders a full http URL directly without dicebear', () => {
+    const url = 'https://example.com/photo.jpg';
+    const { container } = render(<Avatar seed={url} size={80} />);
+    const img = container.querySelector('img');
+    expect(img?.src).toBe(url);
+  });
 });

@@ -4,9 +4,11 @@ import { GlassCard } from '../components/GlassCard';
 import { CosmicButton } from '../components/CosmicButton';
 import { ProgressSteps } from '../components/ProgressSteps';
 import { Avatar } from '../components/Avatar';
+import { ImageCropper } from '../components/ImageCropper';
+import { useImageUpload } from '../hooks/useImageUpload';
 import { SPECIES, INTERESTS_POOL, SPRING, getAvatarUrl } from '../constants';
 import type { UserProfile } from '../types';
-import { Eye, EyeSlash, ArrowRight, ArrowLeft, Rocket } from '@phosphor-icons/react';
+import { Eye, EyeSlash, ArrowRight, ArrowLeft, Rocket, UploadSimple, Camera } from '@phosphor-icons/react';
 
 interface ApiKeyScreenProps {
   onSubmit: (key: string) => void;
@@ -96,9 +98,12 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const [bio, setBio] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
   const [avatarSeed, setAvatarSeed] = useState(AVATAR_SEEDS[0]);
+  const [customPhoto, setCustomPhoto] = useState<string | null>(null);
   const [minAge, setMinAge] = useState(21);
   const [maxAge, setMaxAge] = useState(300);
   const [maxDistance, setMaxDistance] = useState(50);
+
+  const { imageData, triggerFileSelect, triggerCamera, clearImage } = useImageUpload();
 
   const canProceed = [
     name.length >= 2,
@@ -115,7 +120,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
         species,
         bio,
         interests,
-        avatar: getAvatarUrl(avatarSeed),
+        avatar: customPhoto || getAvatarUrl(avatarSeed),
         preferences: { speciesFilter: [], minAge, maxAge, maxDistance },
       });
     }
@@ -145,6 +150,18 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={containerStyle}>
+      {imageData && (
+        <ImageCropper
+          imageSrc={imageData}
+          onConfirm={(cropped) => {
+            setCustomPhoto(cropped);
+            clearImage();
+          }}
+          onCancel={() => {
+            clearImage();
+          }}
+        />
+      )}
       <div style={cardStyle}>
         <ProgressSteps total={4} current={step} style={{ marginBottom: '1.5rem' }} />
 
@@ -292,36 +309,113 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                   Choose your look
                 </h2>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                  Pick an avatar that represents you across the cosmos.
+                  Upload a photo or pick an avatar.
                 </p>
 
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                  <Avatar seed={avatarSeed} size={120} />
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
+                  <Avatar seed={customPhoto || avatarSeed} size={120} />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
-                  {AVATAR_SEEDS.map(seed => (
-                    <motion.button
-                      key={seed}
-                      onClick={() => setAvatarSeed(seed)}
-                      whileTap={{ scale: 0.9 }}
-                      style={{
-                        padding: 3,
-                        borderRadius: '50%',
-                        background: avatarSeed === seed ? 'linear-gradient(135deg, #7C3AED, #EC4899)' : 'rgba(10, 10, 18, 0.6)',
-                        border: avatarSeed === seed ? 'none' : '2px solid var(--glass-border)',
-                        cursor: 'pointer',
-                        aspectRatio: '1',
-                      }}
-                    >
-                      <img
-                        src={getAvatarUrl(seed)}
-                        alt=""
-                        style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#12121E' }}
-                      />
-                    </motion.button>
-                  ))}
+                {/* Upload / Camera buttons */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => triggerFileSelect()}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      padding: '0.65rem 0.75rem',
+                      borderRadius: '0.75rem',
+                      fontSize: '0.85rem',
+                      fontWeight: 500,
+                      background: 'rgba(124, 58, 237, 0.15)',
+                      border: '1px solid rgba(124, 58, 237, 0.3)',
+                      color: 'var(--nebula-400)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <UploadSimple size={16} weight="bold" />
+                    Upload Photo
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => triggerCamera()}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      padding: '0.65rem 0.75rem',
+                      borderRadius: '0.75rem',
+                      fontSize: '0.85rem',
+                      fontWeight: 500,
+                      background: 'rgba(236, 72, 153, 0.15)',
+                      border: '1px solid rgba(236, 72, 153, 0.3)',
+                      color: 'var(--cosmic-pink)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Camera size={16} weight="bold" />
+                    Take Photo
+                  </motion.button>
                 </div>
+
+                {customPhoto && (
+                  <button
+                    onClick={() => { setCustomPhoto(null); clearImage(); }}
+                    style={{
+                      display: 'block',
+                      margin: '0 auto 1rem',
+                      fontSize: '0.8rem',
+                      color: 'var(--text-muted)',
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Remove photo & use avatar instead
+                  </button>
+                )}
+
+                {!customPhoto && (
+                  <>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem',
+                      color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em',
+                    }}>
+                      <div style={{ flex: 1, height: 1, background: 'var(--glass-border)' }} />
+                      or choose an avatar
+                      <div style={{ flex: 1, height: 1, background: 'var(--glass-border)' }} />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
+                      {AVATAR_SEEDS.map(seed => (
+                        <motion.button
+                          key={seed}
+                          onClick={() => setAvatarSeed(seed)}
+                          whileTap={{ scale: 0.9 }}
+                          style={{
+                            padding: 3,
+                            borderRadius: '50%',
+                            background: avatarSeed === seed ? 'linear-gradient(135deg, #7C3AED, #EC4899)' : 'rgba(10, 10, 18, 0.6)',
+                            border: avatarSeed === seed ? 'none' : '2px solid var(--glass-border)',
+                            cursor: 'pointer',
+                            aspectRatio: '1',
+                          }}
+                        >
+                          <img
+                            src={getAvatarUrl(seed)}
+                            alt=""
+                            style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#12121E' }}
+                          />
+                        </motion.button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
